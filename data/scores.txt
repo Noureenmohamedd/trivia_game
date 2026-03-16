@@ -1,0 +1,12 @@
+nour|single|Math|Easy|10|1|0|2026-03-16T17:56:38.488321600
+nour|team|Math|Easy|10|1|1|2026-03-16T18:23:21.847214400
+esso|team|Math|Easy|0|0|2|2026-03-16T18:23:21.848227400
+esso|team|Geography|Easy|0|0|1|2026-03-16T18:47:00.276477900
+nour|team|Geography|Easy|0|0|1|2026-03-16T18:47:00.282891300
+nour|team|Science|Hard|0|0|2|2026-03-16T19:09:53.773713400
+esso|team|Science|Hard|20|1|1|2026-03-16T19:09:53.778269800
+nour|team|Geography|Easy|0|0|1|2026-03-16T19:56:08.996213800
+esso|team|Geography|Easy|10|1|0|2026-03-16T19:56:09.016215
+essam|team|Geography|Medium|15|1|1|2026-03-16T21:27:27.130568900
+esso|team|Geography|Medium|0|0|2|2026-03-16T21:27:27.146109900
+nour|single|Math|Easy|10|1|1|2026-03-16T22:16:13.259199500

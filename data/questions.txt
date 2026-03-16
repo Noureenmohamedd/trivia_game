@@ -1,0 +1,53 @@
+What is the capital of France?|Geography|Easy|Paris|Madrid|Rome|Berlin|A
+Which continent is Brazil in?|Geography|Easy|Europe|South America|Africa|Asia|B
+What is the largest desert in the world (by area)?|Geography|Easy|Gobi|Sahara|Arabian|Kalahari|B
+Which ocean is on the west coast of the United States?|Geography|Easy|Atlantic|Indian|Pacific|Arctic|C
+Mount Everest lies on the border of Nepal and which country?|Geography|Easy|India|China|Bhutan|Pakistan|B
+
+Which country has the most islands?|Geography|Medium|Canada|Sweden|Indonesia|Philippines|B
+What is the capital of Australia?|Geography|Medium|Sydney|Canberra|Melbourne|Perth|B
+The river Danube empties into which sea?|Geography|Medium|Black Sea|Caspian Sea|Mediterranean Sea|Red Sea|A
+Which African country is home to the city of Timbuktu?|Geography|Medium|Mali|Nigeria|Kenya|Ethiopia|A
+Which U.S. state is known as the “Sunshine State”?|Geography|Medium|California|Texas|Florida|Arizona|C
+
+Which country is both in Europe and Asia?|Geography|Hard|Spain|Turkey|Norway|Ireland|B
+What is the capital of Mongolia?|Geography|Hard|Astana|Ulaanbaatar|Bishkek|Tashkent|B
+Which strait separates Asia from North America?|Geography|Hard|Strait of Gibraltar|Bering Strait|Bosporus|Dover Strait|B
+The Atacama Desert is primarily located in which country?|Geography|Hard|Peru|Chile|Argentina|Bolivia|B
+What is the deepest ocean trench on Earth?|Geography|Hard|Tonga Trench|Java Trench|Mariana Trench|Peru–Chile Trench|C
+
+What is 7 + 5?|Math|Easy|10|11|12|13|C
+What is 9 × 3?|Math|Easy|18|27|21|24|B
+What is 15 − 8?|Math|Easy|5|6|7|8|C
+What is 6 × 6?|Math|Easy|30|32|36|42|C
+What is \( \frac{1}{2} \) of 20?|Math|Easy|5|10|15|20|B
+
+What is the square root of 144?|Math|Medium|10|11|12|13|C
+What is 35% of 200?|Math|Medium|60|70|80|90|B
+If a triangle has angles 40° and 60°, what is the third angle?|Math|Medium|60°|70°|80°|90°|C
+Solve: 3x + 5 = 20. What is x?|Math|Medium|3|4|5|6|C
+What is the next prime number after 29?|Math|Medium|31|33|35|37|A
+
+What is the derivative of \(x^2\)?|Math|Hard|x|2x|\(x^3\)|2|B
+What is the value of \( \pi \) (pi) to 2 decimal places?|Math|Hard|3.12|3.14|3.16|3.18|B
+If \(2^x = 32\), what is x?|Math|Hard|4|5|6|7|B
+What is the sum of the interior angles of a pentagon?|Math|Hard|360°|450°|540°|600°|C
+What is the determinant of the matrix \(\begin{bmatrix}1 & 2\\3 & 4\end{bmatrix}\)?|Math|Hard|1|2|−2|−1|C
+
+What is the boiling point of water at sea level?|Science|Easy|50°C|100°C|150°C|200°C|B
+Which planet is known as the Red Planet?|Science|Easy|Earth|Mars|Venus|Jupiter|B
+Humans breathe in oxygen and breathe out which gas?|Science|Easy|Hydrogen|Carbon dioxide|Nitrogen|Helium|B
+What part of the plant conducts photosynthesis?|Science|Easy|Root|Stem|Leaf|Flower|C
+What is the chemical symbol for water?|Science|Easy|O2|CO2|H2O|NaCl|C
+
+What gas do plants absorb from the atmosphere?|Science|Medium|Oxygen|Hydrogen|Carbon dioxide|Nitrogen|C
+What is the powerhouse of the cell?|Science|Medium|Nucleus|Mitochondria|Ribosome|Chloroplast|B
+Which blood cells help fight infection?|Science|Medium|Red blood cells|White blood cells|Platelets|Plasma|B
+What is the main gas in Earth’s atmosphere?|Science|Medium|Oxygen|Nitrogen|Carbon dioxide|Argon|B
+What is the unit of electrical current?|Science|Medium|Volt|Ohm|Watt|Ampere|D
+
+What is the SI unit of electric resistance?|Science|Hard|Volt|Ohm|Watt|Ampere|B
+DNA stands for what?|Science|Hard|Deoxyribonucleic acid|Dynamic network algorithm|Deoxygenated nitrogen acid|Dual nucleotide array|A
+Which particle has a negative electric charge?|Science|Hard|Proton|Neutron|Electron|Photon|C
+Which law states that for every action there is an equal and opposite reaction?|Science|Hard|Newton’s First Law|Newton’s Second Law|Newton’s Third Law|Law of Gravitation|C
+What is the approximate speed of light in vacuum?|Science|Hard|300,000 km/s|150,000 km/s|30,000 km/s|3,000 km/s|A

@@ -1,0 +1,7 @@
+=== Welcome to Multiplayer Trivia Game ===
+Use one of the following commands:
+REGISTER <name> <username> <password>
+LOGIN <username> <password>
+Type - anytime to quit
+
+Disconnected from server.

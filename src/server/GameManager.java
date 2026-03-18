@@ -223,12 +223,15 @@ public class GameManager {
             sizes.append(t.getName()).append(" : ").append(size).append(" players\n");
         }
         if (sizeMismatch) {
-            return "400 TEAM_SIZE_MISMATCH\nTeams must have equal number of players.\n\n" + sizes;
+           return "400 TEAM_SIZE_MISMATCH\nTeams must have equal number of players.\n\n"
+        + sizes
+        + "\n1) Try again\n2) Back to main menu";
         }
 
         List<Question> questions = questionManager.getQuestions(category, difficulty, count);
         if (questions.isEmpty()) {
             return "404 NO_QUESTIONS_FOUND";
+            
         }
 
         List<ClientHandler> players = new ArrayList<>();

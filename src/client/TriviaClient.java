@@ -26,10 +26,12 @@ public class TriviaClient {
         JOIN_TEAM_NOT_FOUND_MENU,
         START_TEAM_TEAMCOUNT,
         START_TEAM_NAMES,
-        START_TEAM_TEAM_NOT_FOUND_MENU,
+
         START_TEAM_CATEGORY,
         START_TEAM_DIFFICULTY,
         START_TEAM_COUNT,
+        START_TEAM_ERROR_MENU,
+
         IN_GAME
     }
 
@@ -49,9 +51,10 @@ public class TriviaClient {
         int port = args.length > 1 ? Integer.parseInt(args[1]) : 5000;
 
         try (Socket socket = new Socket(host, port);
-             java.io.BufferedReader serverReader = new java.io.BufferedReader(new java.io.InputStreamReader(socket.getInputStream()));
-             PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
-             Scanner scanner = new Scanner(System.in)) {
+                java.io.BufferedReader serverReader = new java.io.BufferedReader(
+                        new java.io.InputStreamReader(socket.getInputStream()));
+                PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
+                Scanner scanner = new Scanner(System.in)) {
 
             BlockingQueue<String> serverMessages = new LinkedBlockingQueue<>();
             BlockingQueue<String> userInputs = new LinkedBlockingQueue<>();
@@ -72,10 +75,12 @@ public class TriviaClient {
 
             Thread inputThread = new Thread(() -> {
                 try {
-                    while (scanner.hasNextLine()) {
+                    while (!Thread.currentThread().isInterrupted() && scanner.hasNextLine()) {
                         String line = scanner.nextLine();
                         userInputs.offer(line);
                     }
+                } catch (IllegalStateException e) {
+                    // ignore scanner closed
                 } finally {
                     userInputs.offer("__EOF__");
                 }
@@ -157,10 +162,19 @@ public class TriviaClient {
                     }
                     if (sm.equals("200 LOGOUT_SUCCESS")) {
                         state = State.AUTH_MENU;
-                         mode = ClientMode.MENU;
+                        mode = ClientMode.MENU;
                         needsRender = true;
                         continue;
                     }
+
+                    if (sm.startsWith("400 TEAM_SIZE_MISMATCH")) {
+                        System.out.println(sm);
+                        state = State.START_TEAM_ERROR_MENU; // NEW STATE
+                        mode = ClientMode.MENU;
+                        needsRender = true;
+                        continue;
+                    }
+
                     if (sm.startsWith("200 SINGLE_GAME_STARTING") || sm.startsWith("200 TEAM_GAME_STARTING")) {
                         state = State.IN_GAME;
                         mode = ClientMode.IN_QUESTION;
@@ -168,12 +182,7 @@ public class TriviaClient {
                         System.out.println("Starting game...");
                         continue;
                     }
-                    if (sm.startsWith("400 TEAM_SIZE_MISMATCH")) {
-                        System.out.println(sm);
-                        state = State.START_TEAM_TEAMCOUNT;
-                        needsRender = true;
-                        continue;
-                    }
+
                     if (sm.equals("403 ONLY_TEAM_CREATOR_CAN_START")) {
                         System.out.println("Only the team creator can start the game.");
                         state = State.MAIN_MENU;
@@ -193,62 +202,77 @@ public class TriviaClient {
                     }
                     if (sm.equals("404 TEAM_NOT_FOUND")) {
                         System.out.println("Team not found.");
-                        state = State.JOIN_TEAM_NOT_FOUND_MENU;
+                        System.out.println("Returning to Main Menu...");
+
+                        state = State.MAIN_MENU;
+                        mode = ClientMode.MENU;
                         needsRender = true;
+
                         continue;
                     }
+
                     if (sm.startsWith("404 TEAM_NOT_FOUND|")) {
                         missingTeamName = sm.substring("404 TEAM_NOT_FOUND|".length());
                         System.out.println("Team \"" + missingTeamName + "\" does not exist.");
-                        state = State.START_TEAM_TEAM_NOT_FOUND_MENU;
+
+                        System.out.println("Returning to Main Menu...");
+
+                        state = State.MAIN_MENU;
+                        mode = ClientMode.MENU;
                         needsRender = true;
+
                         continue;
                     }
 
                     if (sm.startsWith("200 JOINED_TEAM")) {
-                         System.out.println(sm);
-                         state = State.MAIN_MENU;
-                         mode = ClientMode.MENU;
-                         needsRender = true;
-                         continue;
+                        System.out.println(sm);
+                        state = State.MAIN_MENU;
+                        mode = ClientMode.MENU;
+                        needsRender = true;
+                        continue;
                     }
 
                     if (sm.equals("400 TEAM_IS_FULL")) {
                         System.out.println("Team is full.");
-                          state = State.MAIN_MENU;
-                          mode = ClientMode.MENU;
-                             needsRender = true;
-                           continue;
-                       }
+                        state = State.MAIN_MENU;
+                        mode = ClientMode.MENU;
+                        needsRender = true;
+                        continue;
+                    }
 
+                    if (sm.startsWith("Available Teams:")) {
+                        System.out.println(sm);
+
+                        state = State.MAIN_MENU;
+                        mode = ClientMode.MENU;
+                        needsRender = true;
+
+                        continue;
+                    }
                     if (sm.equals("400 ALREADY_IN_TEAM")) {
-                    System.out.println("You are already in a team.");
-                     state = State.MAIN_MENU;
-                      mode = ClientMode.MENU;
-                      needsRender = true;
-                       continue;
-                       }
-
-
+                        System.out.println("You are already in a team.");
+                        state = State.MAIN_MENU;
+                        mode = ClientMode.MENU;
+                        needsRender = true;
+                        continue;
+                    }
 
                     // Default: just print server messages.
                     // Detect question start
-                       if (sm.toLowerCase().startsWith("question")) {
-    mode = ClientMode.IN_QUESTION;
-    state = State.IN_GAME;
-}
+                    if (sm.toLowerCase().startsWith("question")) {
+                        mode = ClientMode.IN_QUESTION;
+                        state = State.IN_GAME;
+                    }
 
-                       // Detect end of question
-                       if (sm.startsWith("TIME UP") || sm.startsWith("RESULT") || sm.startsWith("SCOREBOARD")) {
-    mode = ClientMode.WAITING;
-}
+                    // Detect end of question
+                    if (sm.startsWith("TIME UP") || sm.startsWith("RESULT") || sm.startsWith("SCOREBOARD")) {
+                        mode = ClientMode.WAITING;
+                    }
 
-
-                    
-
-                         System.out.println(sm);
+                    System.out.println(sm);
                 }
-                if (!running) break;
+                if (!running)
+                    break;
 
                 if (needsRender) {
                     render(state, teamNames.size());
@@ -266,13 +290,17 @@ public class TriviaClient {
                     break;
                 }
 
+                // Global quit: "-" works at any screen
+                if (input.equals("-")) {
+                    writer.println("QUIT");
+                    System.out.println("Disconnecting...");
+                    running = false;
+                    inputThread.interrupt();
+                    break;
+                }
+
                 // Restrict inputs based on client mode
                 if (mode == ClientMode.IN_QUESTION) {
-                    if (input.equals("-")) {
-                        // Question quit -> send QUIT as required
-                        writer.println("QUIT");
-                        continue;
-                    }
                     String up = input.toUpperCase(Locale.ROOT);
                     if (up.length() == 1 && up.charAt(0) >= 'A' && up.charAt(0) <= 'D') {
                         // Send ANSWER|X format
@@ -282,7 +310,8 @@ public class TriviaClient {
                     }
                     continue;
                 } else if (mode == ClientMode.WAITING) {
-                    // Ignore user keystrokes while waiting for server (prevents menu actions mid-question)
+                    // Ignore user keystrokes while waiting for server (prevents menu actions
+                    // mid-question)
                     continue;
                 }
 
@@ -330,6 +359,18 @@ public class TriviaClient {
                             mode = ClientMode.REGISTER_PASSWORD;
                             needsRender = true;
                         }
+                    }
+
+                    case START_TEAM_ERROR_MENU -> {
+                        if (input.equals("1")) {
+                            state = State.START_TEAM_TEAMCOUNT; // try again
+                        } else if (input.equals("2")) {
+                            System.out.println("Returning to Main Menu...");
+                            state = State.MAIN_MENU;
+                        } else {
+                            System.out.println("Invalid input.");
+                        }
+                        needsRender = true;
                     }
                     case REGISTER_PASSWORD -> {
                         if (input.isBlank()) {
@@ -380,7 +421,11 @@ public class TriviaClient {
                                 mode = ClientMode.MENU;
                                 needsRender = true;
                             }
-                            case "4" -> writer.println("LIST_TEAMS");
+                            case "4" -> {
+                                writer.println("LIST_TEAMS");
+                                mode = ClientMode.WAITING;
+                                needsRender = false;
+                            }
                             case "5" -> {
                                 teamCount = null;
                                 teamNames.clear();
@@ -410,7 +455,7 @@ public class TriviaClient {
                             needsRender = true;
                         } else {
                             state = State.SINGLE_DIFFICULTY;
-                                mode = ClientMode.MENU;
+                            mode = ClientMode.MENU;
                             needsRender = true;
                         }
                     }
@@ -421,7 +466,7 @@ public class TriviaClient {
                             needsRender = true;
                         } else {
                             state = State.SINGLE_COUNT;
-                                mode = ClientMode.MENU;
+                            mode = ClientMode.MENU;
                             needsRender = true;
                         }
                     }
@@ -431,8 +476,9 @@ public class TriviaClient {
                             System.out.println("Invalid input. Please choose again.");
                             needsRender = true;
                         } else {
-                                writer.println("PLAY_SINGLE|" + selectedCategory + "|" + selectedDifficulty + "|" + selectedCount);
-                                mode = ClientMode.WAITING;
+                            writer.println(
+                                    "PLAY_SINGLE|" + selectedCategory + "|" + selectedDifficulty + "|" + selectedCount);
+                            mode = ClientMode.WAITING;
                         }
                     }
                     case CREATE_TEAM -> {
@@ -441,10 +487,10 @@ public class TriviaClient {
                             System.out.println("Invalid input. Please choose again.");
                             needsRender = true;
                         } else {
-                                writer.println("CREATE_TEAM|" + pendingTeamName);
-                                state = State.MAIN_MENU;
-                                mode = ClientMode.MENU;
-                                needsRender = true;
+                            writer.println("CREATE_TEAM|" + pendingTeamName);
+                            state = State.MAIN_MENU;
+                            mode = ClientMode.MENU;
+                            needsRender = true;
                         }
                     }
                     case JOIN_TEAM -> {
@@ -453,17 +499,17 @@ public class TriviaClient {
                             System.out.println("Invalid input. Please choose again.");
                             needsRender = true;
                         } else {
-                                writer.println("JOIN_TEAM|" + pendingTeamName);
+                            writer.println("JOIN_TEAM|" + pendingTeamName);
                         }
                     }
                     case JOIN_TEAM_NOT_FOUND_MENU -> {
                         if ("1".equals(input)) {
                             state = State.JOIN_TEAM;
-                                mode = ClientMode.MENU;
+                            mode = ClientMode.MENU;
                             needsRender = true;
                         } else if ("2".equals(input)) {
                             state = State.MAIN_MENU;
-                                mode = ClientMode.MENU;
+                            mode = ClientMode.MENU;
                             needsRender = true;
                         } else {
                             System.out.println("Invalid input. Please choose again.");
@@ -471,16 +517,32 @@ public class TriviaClient {
                         }
                     }
                     case START_TEAM_TEAMCOUNT -> {
-                        teamCount = parsePositiveInt(input);
-                        if (teamCount == null || teamCount < 2) {
-                            System.out.println("Invalid input. Please choose again.");
+                        Integer num = parsePositiveInt(input);
+
+                        if ("0".equals(input.trim())) {
+                            System.out.println("Returning to Main Menu... ");
+                            state = State.MAIN_MENU;
                             needsRender = true;
-                        } else {
-                            teamNames.clear();
-                            state = State.START_TEAM_NAMES;
-                            mode = ClientMode.MENU;
-                            needsRender = true;
+                            break;
                         }
+
+                        if (num == null) {
+                            System.out.println("Invalid input. Please enter a number.");
+                            needsRender = true;
+                            break;
+                        }
+
+                        if (num < 2) {
+                            System.out.println("Enter at least 2 teams or 0 to go back.");
+                            needsRender = true;
+                            break;
+                        }
+
+                        teamCount = num;
+                        teamNames.clear();
+                        state = State.START_TEAM_NAMES;
+                        mode = ClientMode.MENU;
+                        needsRender = true;
                     }
                     case START_TEAM_NAMES -> {
                         if (!isSimpleToken(input)) {
@@ -497,27 +559,7 @@ public class TriviaClient {
                             needsRender = true;
                         }
                     }
-                    case START_TEAM_TEAM_NOT_FOUND_MENU -> {
-                        if ("1".equals(input)) {
-                            // Retry the *current* team name entry (remove last and ask again)
-                            if (!teamNames.isEmpty()) {
-                                teamNames.remove(teamNames.size() - 1);
-                            }
-                            state = State.START_TEAM_NAMES;
-                                mode = ClientMode.MENU;
-                            needsRender = true;
-                        } else if ("2".equals(input)) {
-                            writer.println("LIST_TEAMS");
-                            needsRender = true;
-                        } else if ("3".equals(input)) {
-                            state = State.MAIN_MENU;
-                                mode = ClientMode.MENU;
-                            needsRender = true;
-                        } else {
-                            System.out.println("Invalid input. Please choose again.");
-                            needsRender = true;
-                        }
-                    }
+
                     case START_TEAM_CATEGORY -> {
                         selectedCategory = mapCategoryChoice(input);
                         if (selectedCategory == null) {
@@ -525,7 +567,7 @@ public class TriviaClient {
                             needsRender = true;
                         } else {
                             state = State.START_TEAM_DIFFICULTY;
-                                mode = ClientMode.MENU;
+                            mode = ClientMode.MENU;
                             needsRender = true;
                         }
                     }
@@ -536,7 +578,7 @@ public class TriviaClient {
                             needsRender = true;
                         } else {
                             state = State.START_TEAM_COUNT;
-                                mode = ClientMode.MENU;
+                            mode = ClientMode.MENU;
                             needsRender = true;
                         }
                     }
@@ -622,26 +664,13 @@ public class TriviaClient {
             case SINGLE_COUNT, START_TEAM_COUNT -> System.out.print("Enter number of questions: ");
             case CREATE_TEAM -> System.out.print("Enter team name: ");
             case JOIN_TEAM -> System.out.print("Enter team name: ");
-            case JOIN_TEAM_NOT_FOUND_MENU -> {
-                System.out.println("Team not found.");
-                System.out.println("1) Try again");
-                System.out.println("2) Back to menu");
-                System.out.println();
-                System.out.print("Choose option: ");
-            }
+
             case START_TEAM_TEAMCOUNT -> System.out.print("How many teams will play? ");
             case START_TEAM_NAMES -> {
                 int next = enteredTeams + 1;
                 System.out.print("Enter Team " + next + " name: ");
             }
-            case START_TEAM_TEAM_NOT_FOUND_MENU -> {
-                System.out.println();
-                System.out.println("1) Try again");
-                System.out.println("2) Show team list");
-                System.out.println("3) Back to menu");
-                System.out.println();
-                System.out.print("Choose option: ");
-            }
+
             case IN_GAME -> {
                 // No menu rendering during gameplay; the server drives question display.
             }
@@ -678,9 +707,11 @@ public class TriviaClient {
     }
 
     private static boolean isSimpleToken(String s) {
-        if (s == null) return false;
+        if (s == null)
+            return false;
         String t = s.trim();
-        if (t.isEmpty()) return false;
+        if (t.isEmpty())
+            return false;
         // Avoid protocol delimiter breaking and whitespace issues.
         return !t.contains("|") && !t.contains(" ");
     }

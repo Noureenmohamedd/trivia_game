@@ -23,6 +23,7 @@ public class GameSession implements Runnable {
     private final Map<String, Integer> incorrectCount = new ConcurrentHashMap<>();
     private final Map<String, Character> submittedAnswers = new ConcurrentHashMap<>();
     private final Set<String> answeredUsers = ConcurrentHashMap.newKeySet();
+    private final Map<String, Integer> teamScores = new ConcurrentHashMap<>();
     private final AtomicBoolean questionActive = new AtomicBoolean(false);
     private final ScoreManager scoreManager;
     private final int questionTimeSeconds;
@@ -49,6 +50,11 @@ public class GameSession implements Runnable {
             scores.put(player.getUsername(), 0);
             correctCount.put(player.getUsername(), 0);
             incorrectCount.put(player.getUsername(), 0);
+            // Initialize team score entry if player belongs to a team
+            String team = player.getTeamName();
+            if (team != null) {
+                teamScores.putIfAbsent(team, 0);
+            }
         }
     }
 
@@ -159,6 +165,7 @@ public class GameSession implements Runnable {
         int points = pointsForDifficulty();
         broadcast("TIME_UP. Correct answer: " + correct);
 
+        // --- Individual scoring ---
         for (ClientHandler player : players) {
             String username = player.getUsername();
             Character answer = submittedAnswers.get(username);
@@ -176,6 +183,25 @@ public class GameSession implements Runnable {
             }
         }
 
+        // --- Team scoring: award points once per team if ANY member answered correctly ---
+        if (!teamScores.isEmpty()) {
+            // Collect which teams had at least one correct answer
+            Set<String> teamsWithCorrect = ConcurrentHashMap.newKeySet();
+            for (ClientHandler player : players) {
+                String team = player.getTeamName();
+                if (team != null) {
+                    Character answer = submittedAnswers.get(player.getUsername());
+                    if (answer != null && answer == correct) {
+                        teamsWithCorrect.add(team);
+                    }
+                }
+            }
+            // Award points once per qualifying team
+            for (String team : teamsWithCorrect) {
+                teamScores.compute(team, (k, v) -> v == null ? points : v + points);
+            }
+        }
+
         broadcastScoreboard();
     }
 
@@ -184,6 +210,12 @@ public class GameSession implements Runnable {
         for (ClientHandler player : players) {
             String u = player.getUsername();
             builder.append("- ").append(u).append(": ").append(scores.getOrDefault(u, 0)).append("\n");
+        }
+        if (!teamScores.isEmpty()) {
+            builder.append("\nTEAM SCORES:\n");
+            for (Map.Entry<String, Integer> entry : teamScores.entrySet()) {
+                builder.append("  ").append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
+            }
         }
         broadcast(builder.toString());
     }
@@ -208,6 +240,31 @@ public class GameSession implements Runnable {
             }
             player.setCurrentSession(null);
         }
+
+        // --- Team results ---
+        if (!teamScores.isEmpty()) {
+            builder.append("\n=== TEAM RESULTS ===\n");
+            int maxScore = -1;
+            for (Map.Entry<String, Integer> entry : teamScores.entrySet()) {
+                builder.append("  ").append(entry.getKey()).append(" -> ").append(entry.getValue()).append(" points\n");
+                if (entry.getValue() > maxScore) {
+                    maxScore = entry.getValue();
+                }
+            }
+            // Collect all teams tied at maxScore
+            List<String> winners = new java.util.ArrayList<>();
+            for (Map.Entry<String, Integer> entry : teamScores.entrySet()) {
+                if (entry.getValue() == maxScore) {
+                    winners.add(entry.getKey());
+                }
+            }
+            if (winners.size() > 1) {
+                builder.append("\nDraw between: ").append(String.join(", ", winners)).append("\n");
+            } else {
+                builder.append("\n🏆 Winner: ").append(winners.get(0)).append("\n");
+            }
+        }
+
         broadcast(builder.toString());
     }
 

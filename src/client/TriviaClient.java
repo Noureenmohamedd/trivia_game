@@ -144,10 +144,18 @@ public class TriviaClient {
                         needsRender = true;
                         continue;
                     }
-                    if (sm.equals("401 UNAUTHORIZED") || sm.equals("404 USER_NOT_FOUND")) {
-                        System.out.println("Invalid username or password.");
+                    if (sm.equals("404 USER_NOT_FOUND")) {
+                        System.out.println("Username not found.");
                         state = State.LOGIN_USERNAME;
                         mode = ClientMode.LOGIN_USERNAME;
+                        needsRender = true;
+                        continue;
+                    }
+
+                    if (sm.equals("401 UNAUTHORIZED")) {
+                        System.out.println("Wrong password.");
+                        state = State.LOGIN_PASSWORD;
+                        mode = ClientMode.LOGIN_PASSWORD;
                         needsRender = true;
                         continue;
                     }
